@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuizStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum SessionStatus {
+  WAITING
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  role          Role      @default(STUDENT)
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  quizzes        Quiz[]        @relation("QuizCreator")
+  hostedSessions QuizSession[] @relation("SessionHost")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Quiz {
+  id              String     @id @default(cuid())
+  title           String
+  topic           String
+  difficulty      Difficulty @default(MEDIUM)
+  timePerQuestion Int        @default(30)
+  status          QuizStatus @default(DRAFT)
+  roomCode        String?    @unique
+  creatorId       String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  creator   User          @relation("QuizCreator", fields: [creatorId], references: [id])
+  questions Question[]
+  sessions  QuizSession[]
+}
+
+model Question {
+  id           String   @id @default(cuid())
+  quizId       String
+  text         String
+  options      Json
+  correctIndex Int
+  explanation  String?
+  order        Int
+  createdAt    DateTime @default(now())
+
+  quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers Answer[]
+}
+
+model QuizSession {
+  id              String        @id @default(cuid())
+  quizId          String
+  hostId          String
+  status          SessionStatus @default(WAITING)
+  currentQuestion Int           @default(0)
+  startedAt       DateTime?
+  endedAt         DateTime?
+  createdAt       DateTime      @default(now())
+
+  quiz         Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  host         User          @relation("SessionHost", fields: [hostId], references: [id])
+  participants Participant[]
+}
+
+model Participant {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  userName  String   @default("Anonymous")
+  score     Int      @default(0)
+  streak    Int      @default(0)
+  joinedAt  DateTime @default(now())
+
+  session QuizSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@unique([sessionId, userId])
+}
+
+model Answer {
+  id            String   @id @default(cuid())
+  participantId String
+  questionId    String
+  selectedIndex Int
+  isCorrect     Boolean
+  timeMs        Int
+  pointsEarned  Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([participantId, questionId])
+}
