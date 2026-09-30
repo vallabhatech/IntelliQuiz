@@ -1388,6 +1388,15 @@ Potential features for future versions:
 
 ---
 
+## 📚 Documentation
+
+Project documentation is maintained alongside the codebase:
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system architecture, data flow, real-time model, and scaling considerations
+- [CONTRIBUTING.md](CONTRIBUTING.md) — development workflow and contribution standards
+- [CHANGELOG.md](CHANGELOG.md) — dated documentation and project change history
+- [LICENSE](LICENSE) — MIT license
+
 ## 🤝 Contributing Guide
 
 ### Getting Started
@@ -1460,9 +1469,7 @@ Potential features for future versions:
 
 ## 📄 License
 
-Not found in the current codebase. You should add a LICENSE file (e.g., MIT, Apache-2.0) to specify the license under which the project is distributed.
-
----
+IntelliQuiz is released under the **MIT License**. See [LICENSE](LICENSE) for the full license text.
 
 ## 👥 Authors
 
@@ -1550,4 +1557,3 @@ Not applicable. If you publish this repository, consider adding a star history b
 
 ---
 
-**Generated with [Devin](https://devin.ai)**
